@@ -809,6 +809,10 @@ function launchGame(game, mode) {
   header.classList.remove('hidden-init');
   app.classList.remove('hidden-init');
 
+  // Preklopi vidno sekcijo — to je bil vzrok kvara!
+  document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('game-' + game).classList.add('active');
+
   // Nastavi naslov
   const key = mode ? game + '_' + mode : game;
   document.getElementById('game-title').textContent = GAME_TITLES[key] || '🌟 Učimo se!';
