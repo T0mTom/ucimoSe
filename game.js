@@ -70,38 +70,63 @@ const NUMBERS = [
 // ─── GOVOR (TTS) — Google Translate slovenščina ──────────────
 let currentAudio = null;
 
+// ─── TTS: SLOVENSKI GOVOR ────────────────────────────────────
+// Shranjujemo najboljši slovenščinski glas (nalaganje je asinhrono)
+let slVoice = null;
+
+function loadSlVoice() {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  // Iščemo sl-SI, nato karkoli sl-*
+  slVoice = voices.find(v => v.lang === 'sl-SI')
+         || voices.find(v => v.lang.startsWith('sl'))
+         || null;
+  return slVoice;
+}
+
+// Glasovi se nalagajo asinhrono (posebej na Chromu/Androidu)
+if (window.speechSynthesis) {
+  loadSlVoice();
+  window.speechSynthesis.onvoiceschanged = loadSlVoice;
+}
+
 function speak(text, rate = 0.88) {
   // Ustavi prejšnji zvok
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.src = '';
-    currentAudio = null;
+  if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  // ── 1. PRIMARNA POT: Web Speech API (sl-SI) ──────────────────
+  if (window.speechSynthesis) {
+    const voice = slVoice || loadSlVoice();
+    const u     = new SpeechSynthesisUtterance(text.toLowerCase());
+    u.lang      = 'sl-SI';
+    u.rate      = rate;
+    u.pitch     = 1.05;
+
+    // Če imamo ekspliciten slovenščinski glas, ga dodamo
+    if (voice) u.voice = voice;
+
+    // Ob napaki (brez slovenskega glasu) je rezerva Google Translate
+    u.onerror = () => speakGoogleTTS(text, rate);
+
+    window.speechSynthesis.speak(u);
+    return;
   }
 
-  // Google Translate TTS — pravi slovenski glas
+  // ── 2. REZERVA: Google Translate TTS ─────────────────────────
+  speakGoogleTTS(text, rate);
+}
+
+function speakGoogleTTS(text, rate = 0.88) {
   const url = 'https://translate.google.com/translate_tts'
     + '?ie=UTF-8'
-    + '&q=' + encodeURIComponent(text.toLowerCase())
+    + '&q='      + encodeURIComponent(text.toLowerCase())
     + '&tl=sl'
     + '&client=tw-ob';
-
   const audio = new Audio(url);
   audio.playbackRate = rate;
   currentAudio = audio;
-
-  audio.play().catch(() => {
-    // Rezerva: Web Speech API
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u    = new SpeechSynthesisUtterance(text);
-    u.lang     = 'sl-SI';
-    u.rate     = rate;
-    u.pitch    = 1.1;
-    const vcs  = window.speechSynthesis.getVoices();
-    const slV  = vcs.find(v => v.lang.startsWith('sl')) || null;
-    if (slV) u.voice = slV;
-    window.speechSynthesis.speak(u);
-  });
+  audio.play().catch(() => { /* tiho ne uspe */ });
 }
 
 // ─── PRIPOMOČKI ─────────────────────────────────────────────
