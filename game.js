@@ -645,7 +645,8 @@ function updateNumUI() {
 // ══════════════════════════════════════════════════════════════
 //  ZMAGA
 // ══════════════════════════════════════════════════════════════
-let currentGame = 'abeceda';
+let currentGame    = 'abeceda';
+let balloonInterval = null;
 
 function showVictory(game) {
   currentGame = game;
@@ -660,35 +661,121 @@ function showVictory(game) {
   document.getElementById('vic-score').textContent    = score + ' točk';
   document.getElementById('victory-screen').classList.remove('hidden');
 
-  speak('Bravo! Čestitke! Si odličen!', 0.85, 1.2);
-  spawnConfetti();
+  speak('Bravo! Čestitke! Si odličen!', 0.85);
+  startBalloons();
 }
 
 function restartGame() {
+  stopBalloons();
   document.getElementById('victory-screen').classList.add('hidden');
-  document.getElementById('confetti').innerHTML = '';
+  document.getElementById('balloon-layer').innerHTML = '';
   if (currentGame === 'abeceda') initAbeceda();
   else                           initStevilke();
 }
 
-// ─── Konfeti ─────────────────────────────────────────────────
-function spawnConfetti() {
-  const container = document.getElementById('confetti');
-  container.innerHTML = '';
-  const colors = ['#a78bfa','#34d399','#fbbf24','#f472b6','#60a5fa','#f87171'];
-  for (let i = 0; i < 80; i++) {
-    const p = document.createElement('div');
-    p.className = 'confetti-piece';
-    p.style.cssText = `
-      left: ${Math.random()*100}%;
-      background: ${colors[Math.floor(Math.random()*colors.length)]};
-      width: ${6 + Math.random()*8}px;
-      height: ${12 + Math.random()*14}px;
-      animation-duration: ${2 + Math.random()*3}s;
-      animation-delay: ${Math.random()*2}s;
-      border-radius: ${Math.random() > .5 ? '50%' : '3px'};
-    `;
-    container.appendChild(p);
+// ══════════════════════════════════════════════════════════════
+//  BALONCI
+// ══════════════════════════════════════════════════════════════
+const BALLOON_COLORS = [
+  '#f87171','#fb923c','#fbbf24','#a3e635',
+  '#34d399','#38bdf8','#818cf8','#f472b6',
+  '#e879f9','#ff6eb4','#7ee8a2','#80d0c7',
+];
+
+function startBalloons() {
+  stopBalloons();
+  const layer = document.getElementById('balloon-layer');
+  layer.innerHTML = '';
+
+  // prve balone takoj
+  for (let i = 0; i < 4; i++) {
+    setTimeout(() => spawnBalloon(layer), i * 180);
+  }
+  // nato eno na 600ms
+  balloonInterval = setInterval(() => spawnBalloon(layer), 600);
+  // po 20s ustavi spawning, balonci ki so že gor pa ostanejo
+  setTimeout(stopBalloons, 20000);
+}
+
+function stopBalloons() {
+  if (balloonInterval) { clearInterval(balloonInterval); balloonInterval = null; }
+}
+
+function spawnBalloon(layer) {
+  if (!layer || !document.getElementById('victory-screen') ||
+      document.getElementById('victory-screen').classList.contains('hidden')) return;
+
+  const color   = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+  const size    = 48 + Math.random() * 44;                // px
+  const left    = 4  + Math.random() * 88;                // %
+  const dur     = 4  + Math.random() * 4;                 // s
+  const dxMid   = (Math.random() - .5) * 80;              // drift pri 50%
+  const dx      = dxMid + (Math.random() - .5) * 60;      // drift na vrhu
+
+  const wrap = document.createElement('div');
+  wrap.className = 'balloon';
+  wrap.style.cssText = [
+    `--size:${size}px`,
+    `--color:${color}`,
+    `--dur:${dur}s`,
+    `--dx-mid:${dxMid}px`,
+    `--dx:${dx}px`,
+    `left:${left}%`,
+  ].join(';');
+
+  wrap.innerHTML = `
+    <div class="balloon-body">
+      <div class="balloon-shine"></div>
+    </div>
+    <div class="balloon-string"></div>
+  `;
+
+  // pop ob kliku / dotiku
+  const pop = (e) => { e.stopPropagation(); popBalloon(wrap, e); };
+  wrap.addEventListener('pointerdown', pop, { once: true });
+
+  layer.appendChild(wrap);
+  // odstrani po animaciji
+  setTimeout(() => wrap.remove(), (dur + .5) * 1000);
+}
+
+function popBalloon(balloon, e) {
+  if (balloon.dataset.popped) return;
+  balloon.dataset.popped = '1';
+
+  // vibracija
+  if (navigator.vibrate) navigator.vibrate([40]);
+
+  // koordinate za delce
+  const rect = balloon.getBoundingClientRect();
+  const cx   = rect.left + rect.width  / 2;
+  const cy   = rect.top  + rect.height / 2;
+
+  // pop animacija
+  balloon.classList.add('pop');
+  setTimeout(() => balloon.remove(), 320);
+
+  // izstreli barvne delce
+  spawnParticles(cx, cy, balloon.style.getPropertyValue('--color') ||
+    getComputedStyle(balloon).getPropertyValue('--color'));
+}
+
+function spawnParticles(cx, cy, color) {
+  const count = 10;
+  for (let i = 0; i < count; i++) {
+    const p   = document.createElement('div');
+    p.className = 'pop-particle';
+    const angle = (i / count) * Math.PI * 2;
+    const dist  = 40 + Math.random() * 60;
+    p.style.cssText = [
+      `left:${cx}px`, `top:${cy}px`,
+      `background:${color}`,
+      `--px:${Math.cos(angle)*dist}px`,
+      `--py:${Math.sin(angle)*dist}px`,
+      `--pt:${.35 + Math.random()*.25}s`,
+    ].join(';');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 700);
   }
 }
 
