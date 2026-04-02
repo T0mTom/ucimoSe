@@ -94,6 +94,14 @@
             </div>
             <div class="gc-arrow">▶</div>
           </button>
+          <button class="game-card" onclick="launchGame('manjkajocacrka', null)">
+            <div class="gc-emoji">🐞</div>
+            <div class="gc-info">
+              <div class="gc-name">Manjkajoča črka</div>
+              <div class="gc-desc">Poslušaj črko in dopolni besedo</div>
+            </div>
+            <div class="gc-arrow">▶</div>
+          </button>
           <button class="game-card coming-soon" disabled>
             <div class="gc-emoji">🔤</div>
             <div class="gc-info">
@@ -232,6 +240,38 @@
       </div>
     </section>
 
+    <!-- ===================== MANJKAJOČA ČRKA ===================== -->
+    <section id="game-manjkajocacrka" class="game-section">
+      <div class="game-container">
+
+        <div class="score-bar">
+          <div class="score-item">
+            <span class="score-icon">⭐</span>
+            <span id="mc-score">0</span> točk
+          </div>
+          <div class="score-item">
+            <span class="score-icon">🐞</span>
+            Naloga <span id="mc-round">1</span> / 10
+          </div>
+          <div class="score-item">
+            <span id="mc-lives">❤️❤️❤️</span>
+          </div>
+        </div>
+
+        <div class="card object-card mc-object-card">
+          <div id="mc-emoji" class="big-emoji">🍎</div>
+          <div id="mc-word-prompt" class="mc-word-prompt">MA_KA</div>
+          <button class="speak-btn" onclick="mcSpeakMissingLetter()" title="Sliši manjkajočo črko">🔊</button>
+        </div>
+
+        <p class="pk-label">Katera črka manjka v besedi?</p>
+
+        <div class="pk-letter-grid" id="mc-letter-grid">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </section>
+
     <!-- ===================== STEVILKE IGRA ===================== -->
     <section id="game-stevilke" class="game-section">
       <div class="game-container">
@@ -249,12 +289,6 @@
             <span class="score-icon">🔥</span>
             Niz <span id="num-streak">0</span>
           </div>
-        </div>
-
-        <div id="num-mode-selector" class="mode-selector">
-          <button class="mode-btn active" id="mode-btn-count" onclick="setNumMode('count')">🔢 Štej predmete</button>
-          <button class="mode-btn" id="mode-btn-read" onclick="setNumMode('read')">👁️ Preberi število</button>
-          <button class="mode-btn" id="mode-btn-match" onclick="setNumMode('match')">🔗 Poveži</button>
         </div>
 
         <div id="num-question-area" class="num-question-area">

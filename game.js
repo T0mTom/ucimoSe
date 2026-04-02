@@ -392,7 +392,8 @@ const num = {
 function setNumMode(mode) {
   num.mode = mode;
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('mode-btn-' + mode).classList.add('active');
+  const modeBtn = document.getElementById('mode-btn-' + mode);
+  if (modeBtn) modeBtn.classList.add('active');
   initStevilke();
 }
 
@@ -675,7 +676,12 @@ let balloonInterval = null;
 
 function showVictory(game) {
   currentGame = game;
-  const score = game === 'abeceda' ? abc.score : num.score;
+  const score = (
+    game === 'abeceda' ? abc.score :
+    game === 'prvacrka' ? pk.score :
+    game === 'manjkajocacrka' ? mc.score :
+    num.score
+  );
   const msgs  = [
     'Kar tako naprej! Si pravi/a zvezdnik/ca! ⭐',
     'Odlično si se odrezal/a! Nisi dal/a opustiti! 🏅',
@@ -696,7 +702,9 @@ function restartGame() {
   document.getElementById('balloon-layer').innerHTML = '';
   // Znova zaženi isto igro
   if (currentGame === 'abeceda') initAbeceda();
-  else                           initStevilke();
+  else if (currentGame === 'prvacrka') initPrvaCrka();
+  else if (currentGame === 'manjkajocacrka') initManjkajocaCrka();
+  else initStevilke();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -898,12 +906,107 @@ function handlePKAnswer(chosen, correct, btn) {
 }
 
 // ══════════════════════════════════════════════════════════════
+//  IGRA: MANJKAJOČA ČRKA
+// ══════════════════════════════════════════════════════════════
+const mc = {
+  queue: [], round: 0, totalRounds: 10,
+  score: 0, lives: 3, current: null,
+  missingIndex: -1, missingLetter: '', answered: false,
+};
+
+function initManjkajocaCrka() {
+  mc.queue        = shuffle(ABC_WORDS.filter(w => w.word.length >= 3)).slice(0, mc.totalRounds);
+  mc.round        = 0;
+  mc.score        = 0;
+  mc.lives        = 3;
+  mc.current      = null;
+  mc.answered     = false;
+  mc.missingIndex = -1;
+  mc.missingLetter = '';
+  nextMCRound();
+}
+
+function updateMCScoreBar() {
+  document.getElementById('mc-score').textContent = mc.score;
+  document.getElementById('mc-round').textContent = mc.round;
+  const hearts = '❤️'.repeat(mc.lives) + '🖤'.repeat(3 - mc.lives);
+  document.getElementById('mc-lives').textContent = hearts;
+}
+
+function mcSpeakMissingLetter() {
+  if (!mc.missingLetter) return;
+  speak('Manjkajoča črka je ' + mc.missingLetter, 0.82);
+}
+
+function nextMCRound() {
+  if (mc.round >= mc.totalRounds || mc.lives <= 0) {
+    showVictory('manjkajocacrka');
+    return;
+  }
+
+  mc.answered = false;
+  mc.current  = mc.queue[mc.round];
+  mc.round++;
+
+  const letters = mc.current.word.split('');
+  const minIdx = letters.length > 3 ? 1 : 0;
+  const maxIdx = letters.length > 3 ? letters.length - 2 : letters.length - 1;
+  mc.missingIndex  = randBetween(minIdx, maxIdx);
+  mc.missingLetter = letters[mc.missingIndex];
+  letters[mc.missingIndex] = '_';
+
+  updateMCScoreBar();
+  document.getElementById('mc-emoji').textContent = mc.current.emoji;
+  document.getElementById('mc-word-prompt').textContent = letters.join('');
+
+  const wrongs = shuffle(SL_LETTERS.filter(l => l !== mc.missingLetter)).slice(0, 3);
+  const options = shuffle([mc.missingLetter, ...wrongs]);
+  const grid = document.getElementById('mc-letter-grid');
+  grid.innerHTML = '';
+
+  options.forEach(letter => {
+    const btn = document.createElement('button');
+    btn.className = 'pk-letter-btn';
+    btn.textContent = letter;
+    btn.onclick = () => handleMCAnswer(letter, btn);
+    grid.appendChild(btn);
+  });
+
+  setTimeout(mcSpeakMissingLetter, 250);
+}
+
+function handleMCAnswer(chosen, btn) {
+  if (mc.answered) return;
+  mc.answered = true;
+
+  const allBtns = document.querySelectorAll('#mc-letter-grid .pk-letter-btn');
+  allBtns.forEach(b => { b.onclick = null; });
+
+  if (chosen === mc.missingLetter) {
+    btn.classList.add('pk-correct');
+    mc.score += 10;
+    document.getElementById('mc-word-prompt').textContent = mc.current.word;
+    speak(mc.current.speak, 0.85);
+    setTimeout(nextMCRound, 1300);
+  } else {
+    btn.classList.add('pk-wrong');
+    allBtns.forEach(b => {
+      if (b.textContent === mc.missingLetter) b.classList.add('pk-correct');
+    });
+    mc.lives = Math.max(0, mc.lives - 1);
+    speak('Napaka. Pravilna črka je ' + mc.missingLetter, 0.85);
+    setTimeout(nextMCRound, 1600);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 //  NAVIGACIJA
 // ══════════════════════════════════════════════════════════════
 
 const GAME_TITLES = {
   abeceda:         '🔤 Sestavi besedo',
   prvacrka:        '🔤 Katera črka?',
+  manjkajocacrka:  '🐞 Manjkajoča črka',
   stevilke_count:  '🍎 Štej predmete',
   stevilke_read:   '👁️ Preberi število',
   stevilke_match:  '🔗 Poveži pare',
@@ -912,6 +1015,7 @@ const GAME_TITLES = {
 const GAME_INSTRUCTIONS = {
   abeceda: 'Povleci oziroma klikaj črke in sestavi pravilno besedo za prikazano sličico. Vsaka pravilna beseda ti prinese točke.',
   prvacrka: 'Poslušaj besedo in izberi črko, s katero se začne. Če zgrešiš, izgubiš eno življenje.',
+  manjkajocacrka: 'V besedi manjka ena črka. Računalnik črko izgovori na glas, ti pa izberi pravilno med štirimi možnostmi.',
   stevilke_count: 'Preštej predmete na zaslonu in izberi pravo številko med ponujenimi odgovori.',
   stevilke_read: 'Poveži cifro z besedo ali besedo s pravilno cifro. Izberi pravilen odgovor med možnostmi.',
   stevilke_match: 'Poveži števila z ustreznimi slovenskimi besedami. Ko pravilno povežeš vse pare, dobiš točke.',
@@ -974,8 +1078,9 @@ function confirmLaunchGame() {
   document.getElementById('game-title').textContent = title;
 
   // Zaženi igro
-  if (game === 'abeceda')   { initAbeceda(); }
+  if (game === 'abeceda') { initAbeceda(); }
   else if (game === 'prvacrka') { initPrvaCrka(); }
+  else if (game === 'manjkajocacrka') { initManjkajocaCrka(); }
   else { num.mode = mode || 'count'; initStevilke(); }
 }
 
