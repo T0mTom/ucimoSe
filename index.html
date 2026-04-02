@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Učimo se slovensko! 🎓</title>
+  <meta name="description" content="Izobraževalna igrica za učenje slovenskega abecede in številk do 20 za otroke." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header id="main-header">
+    <div class="header-inner">
+      <div class="logo">🌟 Učimo se!</div>
+      <nav class="nav-tabs">
+        <button id="tab-abeceda" class="tab-btn active" onclick="switchGame('abeceda')">
+          🔤 Abeceda
+        </button>
+        <button id="tab-stevilke" class="tab-btn" onclick="switchGame('stevilke')">
+          🔢 Številke
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="app">
+
+    <!-- ===================== ABECEDA IGRA ===================== -->
+    <section id="game-abeceda" class="game-section active">
+      <div class="game-container">
+
+        <div class="score-bar">
+          <div class="score-item">
+            <span class="score-icon">⭐</span>
+            <span id="abc-score">0</span> točk
+          </div>
+          <div class="score-item">
+            <span class="score-icon">🧩</span>
+            Naloga <span id="abc-round">1</span> / 10
+          </div>
+          <div class="score-item">
+            <span class="score-icon">❤️</span>
+            <span id="abc-lives">3</span> življenj
+          </div>
+        </div>
+
+        <div class="card object-card" id="abc-object-card">
+          <div id="abc-emoji" class="big-emoji">🍎</div>
+          <div id="abc-hint-word" class="hint-word">JABOLKO</div>
+          <button class="speak-btn" onclick="speakCurrent()" title="Poslušaj besedo">
+            🔊
+          </button>
+        </div>
+
+        <div class="word-builder" id="abc-word-builder">
+          <!-- filled by JS -->
+        </div>
+
+        <div class="letter-bank" id="abc-letter-bank">
+          <!-- filled by JS -->
+        </div>
+
+        <div class="abc-actions">
+          <button class="btn-secondary" id="abc-hint-btn" onclick="useHint()">💡 Namig</button>
+          <button class="btn-secondary" onclick="resetWord()">🔄 Ponastavi</button>
+        </div>
+
+        <div id="feedback-overlay" class="feedback-overlay hidden">
+          <div class="feedback-content">
+            <div id="feedback-emoji" class="feedback-emoji">🎉</div>
+            <div id="feedback-text" class="feedback-text">Odlično!</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== STEVILKE IGRA ===================== -->
+    <section id="game-stevilke" class="game-section">
+      <div class="game-container">
+
+        <div class="score-bar">
+          <div class="score-item">
+            <span class="score-icon">⭐</span>
+            <span id="num-score">0</span> točk
+          </div>
+          <div class="score-item">
+            <span class="score-icon">🎯</span>
+            Naloga <span id="num-round">1</span> / 10
+          </div>
+          <div class="score-item">
+            <span class="score-icon">🔥</span>
+            Niz <span id="num-streak">0</span>
+          </div>
+        </div>
+
+        <div id="num-mode-selector" class="mode-selector">
+          <button class="mode-btn active" id="mode-btn-count" onclick="setNumMode('count')">🔢 Štej predmete</button>
+          <button class="mode-btn" id="mode-btn-read" onclick="setNumMode('read')">👁️ Preberi število</button>
+          <button class="mode-btn" id="mode-btn-match" onclick="setNumMode('match')">🔗 Poveži</button>
+        </div>
+
+        <div id="num-question-area" class="num-question-area">
+          <!-- filled by JS -->
+        </div>
+
+        <div id="num-answer-area" class="num-answer-area">
+          <!-- filled by JS -->
+        </div>
+
+        <div id="num-feedback" class="num-feedback hidden">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- VICTORY SCREEN -->
+  <div id="victory-screen" class="victory-screen hidden">
+    <div class="victory-content">
+      <div class="victory-emoji">🏆</div>
+      <h1 class="victory-title">Bravo!</h1>
+      <p class="victory-sub" id="victory-text">Odlično si se odrezal!</p>
+      <div class="final-score" id="vic-score">0 točk</div>
+      <button class="btn-primary" onclick="restartGame()">🔄 Igraj znova</button>
+    </div>
+    <div class="confetti" id="confetti"></div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
