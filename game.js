@@ -791,13 +791,11 @@ function startApp() {
   landing.classList.add('slide-out');
 
   setTimeout(() => {
-    landing.style.display = 'none';
-    // Pokaži igro
+    landing.remove();           // popolnoma odstrani iz DOM
     header.classList.remove('hidden-init');
     app.classList.remove('hidden-init');
-    // Zaženi igro šele zdaj
     initAbeceda();
-  }, 450);
+  }, 440);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
