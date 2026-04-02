@@ -541,6 +541,58 @@ body::before {
 }
 
 /* ========== PROGRESS BAR ========== */
+/* ========== KATERA ČRKA? ========== */
+.pk-object-card { cursor: default; }
+
+.pk-label {
+  text-align: center;
+  font-size: clamp(.8rem, 3vw, 1rem);
+  font-weight: 700; color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.pk-letter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(.5rem, 2vw, .9rem);
+  padding: 0 clamp(.3rem, 2vw, .8rem);
+  flex: 1; min-height: 0;
+  align-items: stretch;
+}
+
+.pk-letter-btn {
+  border-radius: 18px;
+  border: 3px solid rgba(167,139,250,.3);
+  background: linear-gradient(145deg, rgba(167,139,250,.1), rgba(244,114,182,.07));
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(2.2rem, 10vmin, 4rem);
+  font-weight: 900;
+  cursor: pointer;
+  transition: all .15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  display: flex; align-items: center; justify-content: center;
+  min-height: clamp(70px, 18vmin, 120px);
+}
+.pk-letter-btn:active:not(.pk-correct):not(.pk-wrong) {
+  transform: scale(.92);
+  border-color: var(--accent1);
+  background: rgba(167,139,250,.28);
+}
+.pk-letter-btn.pk-correct {
+  border-color: var(--accent2);
+  background: rgba(52,211,153,.2);
+  color: var(--accent2);
+  animation: popIn .3s;
+}
+.pk-letter-btn.pk-wrong {
+  border-color: var(--danger);
+  background: rgba(248,113,113,.18);
+  color: var(--danger);
+  animation: shake .35s;
+}
+
 .progress-wrap { height: 4px; border-radius: 50px; background: rgba(255,255,255,.08); overflow: hidden; flex-shrink: 0; }
 .progress-fill { height: 100%; border-radius: 50px;
   background: linear-gradient(90deg, var(--accent1), var(--accent4));

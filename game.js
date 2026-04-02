@@ -806,14 +806,107 @@ function spawnParticles(cx, cy, color) {
 }
 
 // ══════════════════════════════════════════════════════════════
+//  IGRA: KATERA ČRKA?
+// ══════════════════════════════════════════════════════════════
+
+const SL_LETTERS = 'ABCČDEFGHIJKLMNOPRSŠTUVZŽ'.split('');
+
+const pk = {
+  queue: [], round: 0, totalRounds: 10,
+  score: 0,  lives: 3, current: null, answered: false,
+};
+
+function initPrvaCrka() {
+  pk.queue      = shuffle([...ABC_WORDS]).slice(0, pk.totalRounds);
+  pk.score      = 0;
+  pk.round      = 0;
+  pk.lives      = 3;
+  pk.answered   = false;
+  nextPKRound();
+}
+
+function updatePKScoreBar() {
+  document.getElementById('pk-score').textContent = pk.score;
+  document.getElementById('pk-round').textContent = pk.round;
+  const hearts = '❤️'.repeat(pk.lives) + '🖤'.repeat(3 - pk.lives);
+  document.getElementById('pk-lives').textContent = hearts;
+}
+
+function pkSpeakCurrent() {
+  if (pk.current) speak(pk.current.speak, 0.8);
+}
+
+function nextPKRound() {
+  if (pk.round >= pk.totalRounds || pk.lives <= 0) {
+    showVictory('prvacrka');
+    return;
+  }
+
+  pk.answered = false;
+  pk.current  = pk.queue[pk.round];
+  pk.round++;
+  updatePKScoreBar();
+
+  // Prikaži emoji, skrij besedo z ???
+  document.getElementById('pk-emoji').textContent       = pk.current.emoji;
+  document.getElementById('pk-word-prompt').textContent  = '???';
+
+  // Poveš besedo po kratkem zamiku
+  setTimeout(() => speak(pk.current.speak, 0.82), 300);
+
+  // Generiraj 4 črke: 1 pravilna + 3 napačne
+  const correct  = pk.current.word[0];
+  const wrongs   = shuffle(SL_LETTERS.filter(l => l !== correct)).slice(0, 3);
+  const options  = shuffle([correct, ...wrongs]);
+
+  const grid = document.getElementById('pk-letter-grid');
+  grid.innerHTML = '';
+  options.forEach(letter => {
+    const btn = document.createElement('button');
+    btn.className   = 'pk-letter-btn';
+    btn.textContent = letter;
+    btn.onclick     = () => handlePKAnswer(letter, correct, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function handlePKAnswer(chosen, correct, btn) {
+  if (pk.answered) return;
+  pk.answered = true;
+
+  // Razkrij besedo
+  document.getElementById('pk-word-prompt').textContent = pk.current.word;
+
+  const allBtns = document.querySelectorAll('.pk-letter-btn');
+  allBtns.forEach(b => { b.onclick = null; }); // prepreči dvojni klik
+
+  if (chosen === correct) {
+    btn.classList.add('pk-correct');
+    pk.score += 10;
+    speak('Pravilno! ' + pk.current.speak, 0.85);
+    setTimeout(nextPKRound, 1300);
+  } else {
+    btn.classList.add('pk-wrong');
+    // Pokaži pravilno
+    allBtns.forEach(b => {
+      if (b.textContent === correct) b.classList.add('pk-correct');
+    });
+    pk.lives = Math.max(0, pk.lives - 1);
+    speak('Napaka. ' + pk.current.speak, 0.85);
+    setTimeout(nextPKRound, 1600);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 //  NAVIGACIJA
 // ══════════════════════════════════════════════════════════════
 
 const GAME_TITLES = {
-  abeceda: '🔤 Sestavi besedo',
-  stevilke_count: '🍎 Štej predmete',
-  stevilke_read:  '👁️ Preberi število',
-  stevilke_match: '🔗 Poveži pare',
+  abeceda:         '🔤 Sestavi besedo',
+  prvacrka:        '🔤 Katera črka?',
+  stevilke_count:  '🍎 Štej predmete',
+  stevilke_read:   '👁️ Preberi število',
+  stevilke_match:  '🔗 Poveži pare',
 };
 
 // 1. Klik na „Igraj zdaj!“ → prikaži izbor iger
@@ -843,12 +936,9 @@ function launchGame(game, mode) {
   document.getElementById('game-title').textContent = GAME_TITLES[key] || '🌟 Učimo se!';
 
   // Zaženi igro
-  if (game === 'abeceda') {
-    initAbeceda();
-  } else {
-    num.mode = mode || 'count';
-    initStevilke();
-  }
+  if (game === 'abeceda')   { initAbeceda(); }
+  else if (game === 'prvacrka') { initPrvaCrka(); }
+  else { num.mode = mode || 'count'; initStevilke(); }
 }
 
 // 3. Gumb Nazaj → skrij igro, prikaži izbor

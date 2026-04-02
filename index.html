@@ -86,13 +86,13 @@
             </div>
             <div class="gc-arrow">▶</div>
           </button>
-          <button class="game-card coming-soon" disabled>
-            <div class="gc-emoji">📖</div>
+          <button class="game-card" onclick="launchGame('prvacrka', null)">
+            <div class="gc-emoji">🔤</div>
             <div class="gc-info">
-              <div class="gc-name">Berem besede</div>
-              <div class="gc-desc">Kmalu na voljo…</div>
+              <div class="gc-name">Katera črka?</div>
+              <div class="gc-desc">Slišiš besedo, izberi začetno črko</div>
             </div>
-            <div class="gc-badge-soon">Kmalu</div>
+            <div class="gc-arrow">▶</div>
           </button>
           <button class="game-card coming-soon" disabled>
             <div class="gc-emoji">🔤</div>
@@ -196,6 +196,39 @@
             <div id="feedback-text" class="feedback-text">Odlično!</div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===================== KATERA ČRKA? ===================== -->
+    <section id="game-prvacrka" class="game-section">
+      <div class="game-container">
+
+        <div class="score-bar">
+          <div class="score-item">
+            <span class="score-icon">⭐</span>
+            <span id="pk-score">0</span> točk
+          </div>
+          <div class="score-item">
+            <span class="score-icon">🔤</span>
+            Naloga <span id="pk-round">1</span> / 10
+          </div>
+          <div class="score-item">
+            <span id="pk-lives">❤️❤️❤️</span>
+          </div>
+        </div>
+
+        <div class="card object-card pk-object-card">
+          <div id="pk-emoji" class="big-emoji">🍎</div>
+          <div id="pk-word-prompt" class="hint-word">???</div>
+          <button class="speak-btn" onclick="pkSpeakCurrent()" title="Sliši besedo">🔊</button>
+        </div>
+
+        <p class="pk-label">S katero črko se začne ta beseda?</p>
+
+        <div class="pk-letter-grid" id="pk-letter-grid">
+          <!-- filled by JS -->
+        </div>
+
       </div>
     </section>
 
