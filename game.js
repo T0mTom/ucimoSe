@@ -1013,8 +1013,8 @@ const GAME_TITLES = {
 };
 
 const GAME_INSTRUCTIONS = {
-  abeceda: 'Povleci oziroma klikaj črke in sestavi pravilno besedo za prikazano sličico. Vsaka pravilna beseda ti prinese točke.',
-  prvacrka: 'Poslušaj besedo in izberi črko, s katero se začne. Če zgrešiš, izgubiš eno življenje.',
+  abeceda: 'Klikaj črke in sestavi pravilno besedo za prikazano sličico. Vsaka pravilna beseda ti prinese točke.',
+  prvacrka: 'Poslušaj besedo in izberi črko, s katero se začne. Če zgrešiš.',
   manjkajocacrka: 'V besedi manjka ena črka. Računalnik črko izgovori na glas, ti pa izberi pravilno med štirimi možnostmi.',
   stevilke_count: 'Preštej predmete na zaslonu in izberi pravo številko med ponujenimi odgovori.',
   stevilke_read: 'Poveži cifro z besedo ali besedo s pravilno cifro. Izberi pravilen odgovor med možnostmi.',
