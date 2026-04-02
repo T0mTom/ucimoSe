@@ -782,6 +782,24 @@ function spawnParticles(cx, cy, color) {
 // ══════════════════════════════════════════════════════════════
 //  ZAGON
 // ══════════════════════════════════════════════════════════════
+function startApp() {
+  const landing = document.getElementById('landing-screen');
+  const header  = document.getElementById('main-header');
+  const app     = document.getElementById('app');
+
+  // Animiraj odhod landing zaslona
+  landing.classList.add('slide-out');
+
+  setTimeout(() => {
+    landing.style.display = 'none';
+    // Pokaži igro
+    header.classList.remove('hidden-init');
+    app.classList.remove('hidden-init');
+    // Zaženi igro šele zdaj
+    initAbeceda();
+  }, 450);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  initAbeceda();
+  // Ne inicializiraj igre — počakaj da uporabnik klikne "Igraj"
 });

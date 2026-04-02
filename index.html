@@ -11,8 +11,46 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- LANDING SCREEN -->
+  <div id="landing-screen" class="landing-screen">
+    <div class="landing-inner">
+
+      <div class="landing-badge">🇸🇮 Slovenščina za otroke</div>
+
+      <h1 class="landing-title">
+        <span class="landing-title-star">🌟</span>
+        Učimo se slovensko!
+      </h1>
+
+      <p class="landing-desc">
+        Zabavna igrica za učenje <strong>slovenskega abecede</strong> in
+        <strong>številk do 20</strong>.<br>
+        Sestavljaš besede, šteješ predmete in se učiš izgovorjavo —
+        z resničnim slovenskim glasom! 🔊
+      </p>
+
+      <div class="landing-features">
+        <div class="lf-item">🔤<span>Abeceda &amp; besede</span></div>
+        <div class="lf-item">🔢<span>Številke 1–20</span></div>
+        <div class="lf-item">🔊<span>Slovenski glas</span></div>
+        <div class="lf-item">🏆<span>Točke &amp; zmage</span></div>
+      </div>
+
+      <img src="hero.png" alt="Otroči se učijo slovensko" class="landing-hero-img" />
+
+      <button class="btn-play" id="btn-play" onclick="startApp()">
+        ▶️&nbsp;&nbsp;Igraj zdaj!
+      </button>
+
+    </div>
+
+    <footer class="landing-footer">
+      © 2025 Vse pravice pridržane · AI &amp; TJ
+    </footer>
+  </div>
+
   <!-- HEADER -->
-  <header id="main-header">
+  <header id="main-header" class="hidden-init">
     <div class="header-inner">
       <div class="logo">🌟 Učimo se!</div>
       <nav class="nav-tabs">
@@ -26,7 +64,7 @@
     </div>
   </header>
 
-  <main id="app">
+  <main id="app" class="hidden-init">
 
     <!-- ===================== ABECEDA IGRA ===================== -->
     <section id="game-abeceda" class="game-section active">
