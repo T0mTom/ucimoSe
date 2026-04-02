@@ -909,6 +909,21 @@ const GAME_TITLES = {
   stevilke_match:  '🔗 Poveži pare',
 };
 
+const GAME_INSTRUCTIONS = {
+  abeceda: 'Povleci oziroma klikaj črke in sestavi pravilno besedo za prikazano sličico. Vsaka pravilna beseda ti prinese točke.',
+  prvacrka: 'Poslušaj besedo in izberi črko, s katero se začne. Če zgrešiš, izgubiš eno življenje.',
+  stevilke_count: 'Preštej predmete na zaslonu in izberi pravo številko med ponujenimi odgovori.',
+  stevilke_read: 'Poveži cifro z besedo ali besedo s pravilno cifro. Izberi pravilen odgovor med možnostmi.',
+  stevilke_match: 'Poveži števila z ustreznimi slovenskimi besedami. Ko pravilno povežeš vse pare, dobiš točke.',
+};
+
+let pendingLaunch = null;
+
+function stopAllSpeech() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
+}
+
 // 1. Klik na „Igraj zdaj!“ → prikaži izbor iger
 function startApp() {
   const landing = document.getElementById('landing-screen');
@@ -921,6 +936,30 @@ function startApp() {
 
 // 2. Klik na kartico igre → prikaži igro
 function launchGame(game, mode) {
+  const key = mode ? game + '_' + mode : game;
+  const title = GAME_TITLES[key] || '🌟 Učimo se!';
+  const instructions = GAME_INSTRUCTIONS[key] || 'Izberi pravilne odgovore in osvajaj točke.';
+
+  pendingLaunch = { game, mode, title };
+
+  document.getElementById('instructions-modal').classList.remove('hidden');
+  stopAllSpeech();
+  setTimeout(() => speak('Navodila. ' + instructions, 0.88), 200);
+}
+
+function closeInstructions() {
+  stopAllSpeech();
+  document.getElementById('instructions-modal').classList.add('hidden');
+  pendingLaunch = null;
+}
+
+function confirmLaunchGame() {
+  if (!pendingLaunch) return;
+  const { game, mode, title } = pendingLaunch;
+  pendingLaunch = null;
+  stopAllSpeech();
+  document.getElementById('instructions-modal').classList.add('hidden');
+
   document.getElementById('screen-select').classList.add('hidden-init');
   const header = document.getElementById('main-header');
   const app    = document.getElementById('app');
@@ -932,8 +971,7 @@ function launchGame(game, mode) {
   document.getElementById('game-' + game).classList.add('active');
 
   // Nastavi naslov
-  const key = mode ? game + '_' + mode : game;
-  document.getElementById('game-title').textContent = GAME_TITLES[key] || '🌟 Učimo se!';
+  document.getElementById('game-title').textContent = title;
 
   // Zaženi igro
   if (game === 'abeceda')   { initAbeceda(); }
@@ -945,8 +983,7 @@ function launchGame(game, mode) {
 function goBack() {
   // Ustavi vse
   stopBalloons();
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  stopAllSpeech();
   document.getElementById('victory-screen').classList.add('hidden');
   document.getElementById('balloon-layer').innerHTML = '';
 

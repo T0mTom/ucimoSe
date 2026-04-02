@@ -886,3 +886,40 @@ body::before {
   transition: all .15s;
 }
 .toast-close:hover { background: rgba(248,113,113,.3); color: var(--danger); }
+
+/* ========== GAME INSTRUCTIONS MODAL ========== */
+.instructions-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 650;
+  background: rgba(10, 8, 30, 0.78);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.instructions-modal.hidden {
+  display: none;
+}
+
+.instructions-card {
+  width: min(520px, 100%);
+  background: rgba(23, 18, 60, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: clamp(1rem, 4vw, 1.4rem);
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  text-align: center;
+}
+
+.instructions-visual {
+  font-size: clamp(3rem, 12vmin, 4.5rem);
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.45));
+  animation: floaty 2.5s ease-in-out infinite;
+}
