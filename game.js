@@ -840,5 +840,12 @@ function goBack() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Samo inicializacija — igra se zažene šele ob kliku
+  // Prikaži obvestilo za desktop
+  if (window.innerWidth > 768 && !('ontouchstart' in window)) {
+    const toast = document.getElementById('desktop-toast');
+    if (toast) {
+      setTimeout(() => toast.classList.remove('hidden'), 800);
+      setTimeout(() => toast.classList.add('hidden'), 9000); // auto-skrij po 8s
+    }
+  }
 });

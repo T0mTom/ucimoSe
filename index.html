@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Igrajmo in se učimo! 🎓</title>
+  <title>Učimo se slovensko! 🎓</title>
   <meta name="description" content="Izobraževalna igrica za učenje slovenskega abecede in številk do 20 za otroke." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,7 +19,7 @@
 
       <h1 class="landing-title">
         <span class="landing-title-star">🌟</span>
-        Igrajmo in se učimo!
+        Učimo se slovensko!
       </h1>
 
       <p class="landing-desc">
@@ -45,8 +45,16 @@
     </div>
 
     <footer class="landing-footer">
-      © 2025 Vse pravice pridržane · AI &amp; TJ
+      &copy; 2025 Vse pravice pridržane &middot; AI &amp; TJ
     </footer>
+
+    <!-- Obvestilo za namizne naprave -->
+    <div id="desktop-toast" class="desktop-toast hidden">
+      📱 Ta igra je optimizirana za <strong>mobilni telefon</strong>.<br>
+      <span>Na računalniku je videz morda zmanjšan.</span>
+      <button class="toast-close"
+        onclick="document.getElementById('desktop-toast').classList.add('hidden')">&times;</button>
+    </div>
   </div>
 
   <!-- HEADER -->
@@ -61,8 +69,8 @@
   <!-- GAME SELECTION SCREEN -->
   <div id="screen-select" class="screen-select hidden-init">
     <div class="ss-header">
-      <div class="ss-logo">🌟 Igrajmo in se učimo!</div>
-      <p class="ss-sub">Izberi igro in začni učiti</p>
+      <div class="ss-logo">🌟 Učimo se slovensko!</div>
+      <p class="ss-sub">Izberi igro in se začni učiti</p>
     </div>
 
     <div class="ss-content">
