@@ -669,6 +669,7 @@ function restartGame() {
   stopBalloons();
   document.getElementById('victory-screen').classList.add('hidden');
   document.getElementById('balloon-layer').innerHTML = '';
+  // Znova zaženi isto igro
   if (currentGame === 'abeceda') initAbeceda();
   else                           initStevilke();
 }
@@ -780,24 +781,64 @@ function spawnParticles(cx, cy, color) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  ZAGON
+//  NAVIGACIJA
 // ══════════════════════════════════════════════════════════════
+
+const GAME_TITLES = {
+  abeceda: '🔤 Sestavi besedo',
+  stevilke_count: '🍎 Štej predmete',
+  stevilke_read:  '👁️ Preberi število',
+  stevilke_match: '🔗 Poveži pare',
+};
+
+// 1. Klik na „Igraj zdaj!“ → prikaži izbor iger
 function startApp() {
   const landing = document.getElementById('landing-screen');
-  const header  = document.getElementById('main-header');
-  const app     = document.getElementById('app');
-
-  // Animiraj odhod landing zaslona
   landing.classList.add('slide-out');
-
   setTimeout(() => {
-    landing.remove();           // popolnoma odstrani iz DOM
-    header.classList.remove('hidden-init');
-    app.classList.remove('hidden-init');
-    initAbeceda();
+    landing.remove();
+    document.getElementById('screen-select').classList.remove('hidden-init');
   }, 440);
 }
 
+// 2. Klik na kartico igre → prikaži igro
+function launchGame(game, mode) {
+  document.getElementById('screen-select').classList.add('hidden-init');
+  const header = document.getElementById('main-header');
+  const app    = document.getElementById('app');
+  header.classList.remove('hidden-init');
+  app.classList.remove('hidden-init');
+
+  // Nastavi naslov
+  const key = mode ? game + '_' + mode : game;
+  document.getElementById('game-title').textContent = GAME_TITLES[key] || '🌟 Učimo se!';
+
+  // Zaženi igro
+  if (game === 'abeceda') {
+    initAbeceda();
+  } else {
+    num.mode = mode || 'count';
+    initStevilke();
+  }
+}
+
+// 3. Gumb Nazaj → skrij igro, prikaži izbor
+function goBack() {
+  // Ustavi vse
+  stopBalloons();
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  document.getElementById('victory-screen').classList.add('hidden');
+  document.getElementById('balloon-layer').innerHTML = '';
+
+  // Skrij igro
+  document.getElementById('main-header').classList.add('hidden-init');
+  document.getElementById('app').classList.add('hidden-init');
+
+  // Prikaži izbor
+  document.getElementById('screen-select').classList.remove('hidden-init');
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  // Ne inicializiraj igre — počakaj da uporabnik klikne "Igraj"
+  // Samo inicializacija — igra se zažene šele ob kliku
 });

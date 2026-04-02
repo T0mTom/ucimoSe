@@ -52,17 +52,93 @@
   <!-- HEADER -->
   <header id="main-header" class="hidden-init">
     <div class="header-inner">
-      <div class="logo">🌟 Učimo se!</div>
-      <nav class="nav-tabs">
-        <button id="tab-abeceda" class="tab-btn active" onclick="switchGame('abeceda')">
-          🔤 Abeceda
-        </button>
-        <button id="tab-stevilke" class="tab-btn" onclick="switchGame('stevilke')">
-          🔢 Številke
-        </button>
-      </nav>
+      <button class="back-btn" id="back-btn" onclick="goBack()">← Nazaj</button>
+      <div id="game-title" class="game-title">🌟 Učimo se!</div>
+      <div class="hdr-spacer"></div>
     </div>
   </header>
+
+  <!-- GAME SELECTION SCREEN -->
+  <div id="screen-select" class="screen-select hidden-init">
+    <div class="ss-header">
+      <div class="ss-logo">🌟 Učimo se slovensko!</div>
+      <p class="ss-sub">Izberi igro in začni učiti</p>
+    </div>
+
+    <div class="ss-content">
+
+      <div class="game-category">
+        <div class="category-label"><span>🔤</span> Abeceda</div>
+        <div class="games-grid">
+          <button class="game-card" onclick="launchGame('abeceda', null)">
+            <div class="gc-emoji">✏️</div>
+            <div class="gc-info">
+              <div class="gc-name">Sestavi besedo</div>
+              <div class="gc-desc">Zloži črke v pravo besedo</div>
+            </div>
+            <div class="gc-arrow">▶</div>
+          </button>
+          <button class="game-card coming-soon" disabled>
+            <div class="gc-emoji">📖</div>
+            <div class="gc-info">
+              <div class="gc-name">Berem besede</div>
+              <div class="gc-desc">Kmalu na voljo…</div>
+            </div>
+            <div class="gc-badge-soon">Kmalu</div>
+          </button>
+          <button class="game-card coming-soon" disabled>
+            <div class="gc-emoji">🔤</div>
+            <div class="gc-info">
+              <div class="gc-name">Abecedni red</div>
+              <div class="gc-desc">Kmalu na voljo…</div>
+            </div>
+            <div class="gc-badge-soon">Kmalu</div>
+          </button>
+        </div>
+      </div>
+
+      <div class="game-category">
+        <div class="category-label"><span>🔢</span> Številke</div>
+        <div class="games-grid">
+          <button class="game-card" onclick="launchGame('stevilke','count')">
+            <div class="gc-emoji">🍎</div>
+            <div class="gc-info">
+              <div class="gc-name">Štej predmete</div>
+              <div class="gc-desc">Preštej sličice in izberi število</div>
+            </div>
+            <div class="gc-arrow">▶</div>
+          </button>
+          <button class="game-card" onclick="launchGame('stevilke','read')">
+            <div class="gc-emoji">👁️</div>
+            <div class="gc-info">
+              <div class="gc-name">Preberi število</div>
+              <div class="gc-desc">Poveži cifro z besedo</div>
+            </div>
+            <div class="gc-arrow">▶</div>
+          </button>
+          <button class="game-card" onclick="launchGame('stevilke','match')">
+            <div class="gc-emoji">🔗</div>
+            <div class="gc-info">
+              <div class="gc-name">Poveži pare</div>
+              <div class="gc-desc">Spoji število z besedo</div>
+            </div>
+            <div class="gc-arrow">▶</div>
+          </button>
+          <button class="game-card coming-soon" disabled>
+            <div class="gc-emoji">➕</div>
+            <div class="gc-info">
+              <div class="gc-name">Seštevanje</div>
+              <div class="gc-desc">Kmalu na voljo…</div>
+            </div>
+            <div class="gc-badge-soon">Kmalu</div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <footer class="select-footer">© 2025 Vse pravice pridržane · AI &amp; TJ</footer>
+  </div>
+
 
   <main id="app" class="hidden-init">
 
@@ -164,6 +240,7 @@
       <p class="victory-sub" id="victory-text">Odlično si se odrezal!</p>
       <div class="final-score" id="vic-score">0 točk</div>
       <button class="btn-primary" onclick="restartGame()">🔄 Igraj znova</button>
+      <button class="btn-outline" onclick="goBack()">← Izbor iger</button>
     </div>
   </div>
 
