@@ -767,6 +767,42 @@ body::before {
   flex-shrink: 0;
 }
 
+.site-footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(.45rem, 1.2vh, .65rem);
+}
+.site-footer-inner .footer-copy {
+  margin: 0;
+}
+
+.btn-donate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(.38rem, 1.2vh, .5rem) clamp(.9rem, 3vw, 1.25rem);
+  border-radius: 50px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(167, 139, 250, .35);
+  color: rgba(255, 255, 255, .75);
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(.72rem, 2.8vw, .85rem);
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: .03em;
+  transition: color .15s, border-color .15s, background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-donate:hover {
+  color: #fff;
+  border-color: var(--accent1);
+  background: rgba(167, 139, 250, .15);
+}
+.btn-donate:active {
+  transform: scale(.97);
+}
+
 /* ========== GAME SELECTION SCREEN ========== */
 .screen-select {
   position: fixed; inset: 0; z-index: 200;
@@ -882,6 +918,10 @@ body::before {
   color: rgba(255,255,255,.2);
   letter-spacing: .04em;
   flex-shrink: 0;
+}
+
+.select-footer .site-footer-inner .footer-copy {
+  color: inherit;
 }
 
 /* ========== DESKTOP TOAST ========== */
