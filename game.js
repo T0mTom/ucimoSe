@@ -69,11 +69,78 @@ const NUMBERS = [
 
 // ─── GOVOR (TTS) — Azure prek varnega backend endpointa ───────
 let currentAudio = null;
+let _speakWaitResolve = null;
+
+function _releaseSpeakWait() {
+  if (_speakWaitResolve) {
+    const r = _speakWaitResolve;
+    _speakWaitResolve = null;
+    r();
+  }
+}
 
 function speak(text, rate = 0.88) {
-  // Ustavi prejšnji zvok in predvajaj novega iz backenda.
+  _releaseSpeakWait();
   if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
   speakViaBackend(text, rate);
+}
+
+/** Počaka do konca predvajanja (ali do napake). Uporabi pred naslednjo rundo. */
+function speakAwait(text, rate = 0.88) {
+  _releaseSpeakWait();
+  if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
+
+  return new Promise((resolve) => {
+    _speakWaitResolve = resolve;
+
+    (async () => {
+      let urlToRevoke = null;
+      let finished = false;
+      let safetyTimer = null;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        if (safetyTimer) {
+          clearTimeout(safetyTimer);
+          safetyTimer = null;
+        }
+        if (urlToRevoke) {
+          try { URL.revokeObjectURL(urlToRevoke); } catch (_) {}
+          urlToRevoke = null;
+        }
+        _releaseSpeakWait();
+      };
+
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, rate }),
+        });
+        if (!res.ok) {
+          finish();
+          return;
+        }
+        const blob = await res.blob();
+        urlToRevoke = URL.createObjectURL(blob);
+        const audio = new Audio(urlToRevoke);
+        currentAudio = audio;
+        audio.onended = finish;
+        audio.onerror = finish;
+        try {
+          await audio.play();
+          const ms = Number.isFinite(audio.duration) && audio.duration > 0
+            ? Math.min(30000, audio.duration * 1000 + 2500)
+            : 8000;
+          safetyTimer = setTimeout(finish, ms);
+        } catch (_) {
+          finish();
+        }
+      } catch (_) {
+        finish();
+      }
+    })();
+  });
 }
 
 async function speakViaBackend(text, rate = 0.88) {
@@ -170,6 +237,25 @@ function nextAbcRound() {
   speakCurrent();
 }
 
+function abcWordSlots() {
+  return Array.from(document.getElementById('abc-word-builder').querySelectorAll('.slot'));
+}
+
+function abcLetterBankTiles() {
+  return Array.from(document.getElementById('abc-letter-bank').querySelectorAll('.letter-tile'));
+}
+
+/** Znak v reži (trim + NFC) — zanesljiveje kot samo dataset.filled v nekaterih brskalnikih. */
+function abcSlotChar(slot) {
+  const raw = (slot.textContent || '').trim();
+  if (!raw) return '';
+  return raw.normalize ? raw.normalize('NFC') : raw;
+}
+
+function abcSlotIsEmpty(slot) {
+  return abcSlotChar(slot) === '';
+}
+
 // Postavi prazne slote za besedo
 function renderWordBuilder() {
   const wb = document.getElementById('abc-word-builder');
@@ -190,10 +276,11 @@ function renderLetterBank() {
   bank.innerHTML = '';
 
   const letters = abc.current.word.split('');
-  // dodaj nekaj napačnih črk
   const extra = 'ABCDEFGHIJKLMNOPRSTUVZŠŽČ'.split('')
     .filter(c => !letters.includes(c));
-  const extras = shuffle(extra).slice(0, Math.min(5, 14 - letters.length));
+  const targetTotal = Math.ceil(letters.length * 1.2);
+  const wantExtra = Math.min(extra.length, Math.max(0, targetTotal - letters.length));
+  const extras = shuffle(extra).slice(0, wantExtra);
   const all    = shuffle([...letters, ...extras]);
 
   all.forEach((ch, i) => {
@@ -211,9 +298,8 @@ function renderLetterBank() {
 function clickTile(tile) {
   if (tile.classList.contains('used')) return;
   const letter = tile.dataset.letter;
-  // poišči prvi prazen slot
-  const slots  = Array.from(document.querySelectorAll('.slot'));
-  const empty  = slots.find(s => !s.dataset.filled);
+  const slots  = abcWordSlots();
+  const empty  = slots.find(s => abcSlotIsEmpty(s));
   if (!empty) return;
 
   empty.textContent    = letter;
@@ -227,7 +313,7 @@ function clickTile(tile) {
 
 function removeFromSlot(index) {
   const slot = document.getElementById('slot-' + index);
-  if (!slot.dataset.filled) return;
+  if (!slot || abcSlotIsEmpty(slot)) return;
 
   const tileId = slot.dataset.filled;
   const tile   = document.getElementById(tileId);
@@ -242,26 +328,24 @@ function removeFromSlot(index) {
 
 function resetWord() {
   abc.filled = [];
-  document.querySelectorAll('.slot').forEach(s => {
+  abcWordSlots().forEach(s => {
     s.textContent    = '';
     s.dataset.filled = '';
     s.classList.remove('filled', 'correct', 'wrong');
   });
-  document.querySelectorAll('.letter-tile').forEach(t => t.classList.remove('used'));
+  abcLetterBankTiles().forEach(t => t.classList.remove('used'));
 }
 
 function useHint() {
-  // zapolni pierwszy pravilni slot
   const word  = abc.current.word.split('');
-  const slots = Array.from(document.querySelectorAll('.slot'));
-  const firstEmpty = slots.find(s => !s.dataset.filled);
+  const slots = abcWordSlots();
+  const firstEmpty = slots.find(s => abcSlotIsEmpty(s));
   if (!firstEmpty) return;
 
   const idx    = parseInt(firstEmpty.dataset.index);
   const need   = word[idx];
 
-  // najdi neporabljeno ploščico s pravilno črko
-  const tile = Array.from(document.querySelectorAll('.letter-tile'))
+  const tile = abcLetterBankTiles()
     .find(t => t.dataset.letter === need && !t.classList.contains('used'));
   if (!tile) return;
 
@@ -273,13 +357,15 @@ function useHint() {
 
 function checkAbcWord() {
   const word  = abc.current.word.split('');
-  const slots = Array.from(document.querySelectorAll('.slot'));
-  const allFilled = slots.every(s => s.dataset.filled);
+  const slots = abcWordSlots();
+  if (slots.length !== word.length) return;
+  const allFilled = slots.every(s => !abcSlotIsEmpty(s));
   if (!allFilled) return;
 
+  const norm = (ch) => (ch && ch.normalize ? ch.normalize('NFC') : ch);
   let allCorrect = true;
   slots.forEach((s, i) => {
-    if (s.textContent === word[i]) {
+    if (abcSlotChar(s) === norm(word[i])) {
       s.classList.add('correct');
     } else {
       s.classList.add('wrong');
@@ -291,20 +377,18 @@ function checkAbcWord() {
     const pts = abc.hintUsed ? 5 : 10;
     abc.score += pts;
     updateAbcUI();
-    speak(abc.current.speak);
     showFeedback(true, abc.current.speak);
-    setTimeout(() => {
+    speakAwait(abc.current.speak, 0.88).then(() => {
       hideFeedback();
       nextAbcRound();
-    }, 1800);
+    });
   } else {
     abc.lives--;
-    speak('Napaka! Poskusi znova.', 1, 1);
     updateAbcUI();
-    setTimeout(() => {
+    speakAwait('Napaka! Poskusi znova.', 0.9).then(() => {
       resetWord();
       if (abc.lives <= 0) showVictory('abeceda', false);
-    }, 900);
+    });
   }
 }
 
@@ -424,17 +508,17 @@ function renderCountQuestion() {
   });
 }
 
-function answerCount(chosen, correct, btn) {
+async function answerCount(chosen, correct, btn) {
   lockAnswers();
   if (chosen === correct) {
     btn.classList.add('btn-correct');
-    handleCorrect(correct + '');
+    await numAnswerCorrect(correct + '');
   } else {
     btn.classList.add('btn-wrong');
     document.getElementById('abtn-' + correct)?.classList.add('btn-correct');
-    handleWrong(correct + '');
+    await numAnswerWrong(correct + '');
   }
-  setTimeout(nextNumRound, 1700);
+  nextNumRound();
 }
 
 // ── NAČIN: Preberi število ─────────────────────────────────
@@ -485,20 +569,19 @@ function renderReadQuestion() {
   }
 }
 
-function answerRead(chosen, correct, num_val, btn) {
+async function answerRead(chosen, correct, num_val, btn) {
   lockAnswers();
   if (chosen == correct) {
     btn.classList.add('btn-correct');
-    handleCorrect(num_val + '');
+    await numAnswerCorrect(num_val + '');
   } else {
     btn.classList.add('btn-wrong');
-    // poišči pravilni gumb
     document.querySelectorAll('.answer-btn').forEach(b => {
       if (b.textContent == correct) b.classList.add('btn-correct');
     });
-    handleWrong(num_val + '');
+    await numAnswerWrong(num_val + '');
   }
-  setTimeout(nextNumRound, 1700);
+  nextNumRound();
 }
 
 // ── NAČIN: Poveži ──────────────────────────────────────────
@@ -574,14 +657,16 @@ function matchClick(el, side) {
       ms.selLeft.classList.remove('sel');
       ms.selRight.classList.remove('sel');
       ms.matched++;
-      speak(ms.pairs.find(p => p.n == lv)?.sl?.toLowerCase() || lv, 0.88);
+      const spoken = ms.pairs.find(p => p.n == lv)?.sl?.toLowerCase() || lv;
 
       if (ms.matched === ms.pairs.length) {
         num.score  += 20;
         num.streak++;
         updateNumUI();
         showFeedbackNum(true, '');
-        setTimeout(nextNumRound, 1600);
+        speakAwait(spoken, 0.88).then(() => nextNumRound());
+      } else {
+        speak(spoken, 0.88);
       }
     } else {
       ms.selLeft.classList.add('wrong-m');
@@ -616,20 +701,20 @@ function lockAnswers() {
   document.querySelectorAll('.answer-btn').forEach(b => b.classList.add('btn-disabled'));
 }
 
-function handleCorrect(numStr) {
+async function numAnswerCorrect(numStr) {
   num.score  += 10 + num.streak * 2;
   num.streak++;
   updateNumUI();
-  speak(NUMBERS.find(x => x.n == numStr)?.sl?.toLowerCase() || numStr, 0.88);
   showFeedbackNum(true, numStr);
+  await speakAwait(NUMBERS.find(x => x.n == numStr)?.sl?.toLowerCase() || numStr, 0.88);
 }
 
-function handleWrong(numStr) {
+async function numAnswerWrong(numStr) {
   num.streak = 0;
   num.lives = Math.max(0, num.lives - 1);
   updateNumUI();
-  speak('Napaka! Pravilni odgovor je ' + (NUMBERS.find(x=>x.n==numStr)?.sl?.toLowerCase() || numStr), 0.9);
   showFeedbackNum(false, numStr);
+  await speakAwait('Napaka! Pravilni odgovor je ' + (NUMBERS.find(x=>x.n==numStr)?.sl?.toLowerCase() || numStr), 0.9);
 }
 
 function showFeedbackNum(correct, numStr) {
@@ -906,17 +991,14 @@ function handlePKAnswer(chosen, correct, btn) {
   if (chosen === correct) {
     btn.classList.add('pk-correct');
     pk.score += 10;
-    speak('Pravilno! ' + pk.current.speak, 0.85);
-    setTimeout(nextPKRound, 1300);
+    speakAwait('Pravilno! ' + pk.current.speak, 0.85).then(() => nextPKRound());
   } else {
     btn.classList.add('pk-wrong');
-    // Pokaži pravilno
     allBtns.forEach(b => {
       if (b.textContent === correct) b.classList.add('pk-correct');
     });
     pk.lives = Math.max(0, pk.lives - 1);
-    speak('Napaka. ' + pk.current.speak, 0.85);
-    setTimeout(nextPKRound, 1600);
+    speakAwait('Napaka. ' + pk.current.speak, 0.85).then(() => nextPKRound());
   }
 }
 
@@ -1001,16 +1083,14 @@ function handleMCAnswer(chosen, btn) {
     btn.classList.add('pk-correct');
     mc.score += 10;
     document.getElementById('mc-word-prompt').textContent = mc.current.word;
-    speak(mc.current.speak, 0.85);
-    setTimeout(nextMCRound, 1300);
+    speakAwait(mc.current.speak, 0.85).then(() => nextMCRound());
   } else {
     btn.classList.add('pk-wrong');
     allBtns.forEach(b => {
       if (b.textContent === mc.missingLetter) b.classList.add('pk-correct');
     });
     mc.lives = Math.max(0, mc.lives - 1);
-    speak('Napaka. Pravilna črka je ' + mc.missingLetter, 0.85);
-    setTimeout(nextMCRound, 1600);
+    speakAwait('Napaka. Pravilna črka je ' + mc.missingLetter, 0.85).then(() => nextMCRound());
   }
 }
 
@@ -1143,21 +1223,19 @@ function avrCheckOrder() {
   if (ok) {
     avr.score += 10;
     updateAvrUI();
-    speak('Pravilno!', 0.85);
     showFeedback(true, '');
-    setTimeout(() => {
+    speakAwait('Pravilno!', 0.85).then(() => {
       hideFeedback();
       nextAvrRound();
-    }, 1600);
+    });
   } else {
     avr.lives = Math.max(0, avr.lives - 1);
     updateAvrUI();
-    speak('Napaka! Poskusi znova.', 0.9);
-    setTimeout(() => {
+    speakAwait('Napaka! Poskusi znova.', 0.9).then(() => {
       avrResetRow();
       avrSlots().forEach(s => s.classList.remove('correct', 'wrong'));
       if (avr.lives <= 0) showVictory('abecednivrst', false);
-    }, 900);
+    });
   }
 }
 
@@ -1250,8 +1328,7 @@ function handleSCAnswer(chosen, correct, btn) {
     btn.classList.add('btn-correct');
     sc.score += 10;
     updateSCUI();
-    speak('Pravilno!', 0.85);
-    setTimeout(nextSCRound, 1500);
+    speakAwait('Pravilno!', 0.85).then(() => nextSCRound());
   } else {
     btn.classList.add('btn-wrong');
     document.querySelectorAll('#sc-answer-area .answer-btn').forEach(b => {
@@ -1259,11 +1336,10 @@ function handleSCAnswer(chosen, correct, btn) {
     });
     sc.lives = Math.max(0, sc.lives - 1);
     updateSCUI();
-    speak(`Napaka. Pravilen odgovor je ${correct}.`, 0.88);
-    setTimeout(() => {
+    speakAwait(`Napaka. Pravilen odgovor je ${correct}.`, 0.88).then(() => {
       if (sc.lives <= 0) showVictory('stejcrk', false);
       else nextSCRound();
-    }, 1700);
+    });
   }
 }
 
@@ -1296,6 +1372,7 @@ const GAME_INSTRUCTIONS = {
 let pendingLaunch = null;
 
 function stopAllSpeech() {
+  _releaseSpeakWait();
   if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
 }
 
