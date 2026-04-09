@@ -1239,8 +1239,8 @@ function nextSCRound() {
   });
 
   setTimeout(() => {
-    speak('Koliko črk ima ta beseda?', 0.88);
-    setTimeout(() => scSpeakWord(), 500);
+    // En sam TTS klic — dva zaporedna klica sta prekinjala drug drugega ali dirkala z omrežjem.
+    speak(`Koliko črk ima beseda ${sc.current.speak}?`, 0.88);
   }, 200);
 }
 
@@ -1319,7 +1319,7 @@ function launchGame(game, mode) {
 
   document.getElementById('instructions-modal').classList.remove('hidden');
   stopAllSpeech();
-  setTimeout(() => speak(instructions, 0.88), 50);
+  speak(instructions, 0.88);
 }
 
 function closeInstructions() {
