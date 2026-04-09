@@ -102,13 +102,21 @@
             </div>
             <div class="gc-arrow">▶</div>
           </button>
-          <button class="game-card coming-soon" disabled>
+          <button class="game-card" onclick="launchGame('abecednivrst', null)">
             <div class="gc-emoji">🔤</div>
             <div class="gc-info">
-              <div class="gc-name">Abecedni red</div>
-              <div class="gc-desc">Kmalu na voljo…</div>
+              <div class="gc-name">Abecedni vrstni red</div>
+              <div class="gc-desc">Razporedi črke po abecedi</div>
             </div>
-            <div class="gc-badge-soon">Kmalu</div>
+            <div class="gc-arrow">▶</div>
+          </button>
+          <button class="game-card" onclick="launchGame('stejcrk', null)">
+            <div class="gc-emoji">🔡</div>
+            <div class="gc-info">
+              <div class="gc-name">Števanje črk</div>
+              <div class="gc-desc">Preštej črke v besedi</div>
+            </div>
+            <div class="gc-arrow">▶</div>
           </button>
         </div>
       </div>
@@ -272,6 +280,68 @@
       </div>
     </section>
 
+    <!-- ===================== ABECEDNI VRSTNI RED ===================== -->
+    <section id="game-abecednivrst" class="game-section">
+      <div class="game-container">
+
+        <div class="score-bar">
+          <div class="score-item">
+            <span class="score-icon">⭐</span>
+            <span id="avr-score">0</span> točk
+          </div>
+          <div class="score-item">
+            <span class="score-icon">🔤</span>
+            Naloga <span id="avr-round">1</span> / 10
+          </div>
+          <div class="score-item">
+            <span id="avr-lives">❤️❤️❤️</span>
+          </div>
+        </div>
+
+        <div class="card object-card pk-object-card">
+          <div class="big-emoji" aria-hidden="true">🔤</div>
+          <p class="pk-label avr-card-hint">Razporedi črke po slovenski abecedi</p>
+        </div>
+
+        <div class="word-builder" id="avr-word-builder"></div>
+        <div class="letter-bank" id="avr-letter-bank"></div>
+
+        <div class="abc-actions">
+          <button class="btn-secondary" onclick="avrResetRow()">🔄 Ponastavi</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ŠTEVANJE ČRK ===================== -->
+    <section id="game-stejcrk" class="game-section">
+      <div class="game-container">
+
+        <div class="score-bar">
+          <div class="score-item">
+            <span class="score-icon">⭐</span>
+            <span id="sc-score">0</span> točk
+          </div>
+          <div class="score-item">
+            <span class="score-icon">🔡</span>
+            Naloga <span id="sc-round">1</span> / 10
+          </div>
+          <div class="score-item">
+            <span id="sc-lives">❤️❤️❤️</span>
+          </div>
+        </div>
+
+        <div class="card object-card pk-object-card">
+          <div id="sc-emoji" class="big-emoji">🍎</div>
+          <div id="sc-word" class="mc-word-prompt">JABOLKO</div>
+          <button class="speak-btn" onclick="scSpeakWord()" title="Sliši besedo">🔊</button>
+        </div>
+
+        <p class="pk-label">Koliko črk ima ta beseda?</p>
+
+        <div class="num-answer-area" id="sc-answer-area"></div>
+      </div>
+    </section>
+
     <!-- ===================== STEVILKE IGRA ===================== -->
     <section id="game-stevilke" class="game-section">
       <div class="game-container">
@@ -286,8 +356,8 @@
             Naloga <span id="num-round">1</span> / 10
           </div>
           <div class="score-item">
-            <span class="score-icon">🔥</span>
-            Niz <span id="num-streak">0</span>
+            <span class="score-icon">❤️</span>
+            <span id="num-lives">❤️❤️❤️</span>
           </div>
         </div>
 
@@ -311,7 +381,7 @@
   <div id="victory-screen" class="victory-screen hidden">
     <div class="victory-content">
       <div class="victory-emoji">🏆</div>
-      <h1 class="victory-title">Bravo!</h1>
+      <h1 class="victory-title" id="victory-title">Bravo!</h1>
       <p class="victory-sub" id="victory-text">Odlično si se odrezal!</p>
       <div class="final-score" id="vic-score">0 točk</div>
       <button class="btn-primary" onclick="restartGame()">🔄 Igraj znova</button>
@@ -332,6 +402,24 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
+  <script>
+    (function initGoogleAnalytics() {
+      const gaId = window.APP_CONFIG && window.APP_CONFIG.GA_MEASUREMENT_ID;
+      if (!gaId) return;
+
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+      document.head.appendChild(s);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', gaId);
+    })();
+  </script>
   <script src="game.js"></script>
 </body>
 
